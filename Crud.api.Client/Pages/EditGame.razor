@@ -1,0 +1,56 @@
+﻿@page "/edit-game"
+@page "/edit-game/{id:int}"
+@inject IGameService GameService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveWebAssembly
+
+@if (Id == null)
+{
+    <h3>Create game</h3>
+}
+else
+{
+    <h3>Edit @game.Name</h3>
+}
+
+<EditForm Model="game" OnSubmit="HandleSubmit" FormName="editGame">
+    <label>Name</label>
+    <InputText @bind-Value="game.Name">@game.Name</InputText>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    @if (Id != null)
+    {
+        <button @onclick="DeleteGame" type="button" class="btn btn-primary">Delete</button>
+    }
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    //[SupplyParameterFromForm]
+    Game game { get; set; } = new Game() { Name = string.Empty };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        game = await GameService.GetById((int)Id);
+    }
+
+    async Task HandleSubmit()
+    {
+        if (Id == null)
+        {
+            await GameService.Add(game);
+        }
+        else
+        {
+            await GameService.Edit((int)Id, game);
+
+        }
+        NavigationManager.NavigateTo("/games");
+    }
+
+    async Task DeleteGame()
+    {
+        await GameService.Delete((int)Id);
+        NavigationManager.NavigateTo("/games");
+    }
+}
